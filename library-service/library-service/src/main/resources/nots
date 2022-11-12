@@ -1,0 +1,39 @@
+1-kullanıcı libtrary servisine istekte bulunuyor,
+    library service kütüphanedeki kitapların Id lerini dönüyor,
+    sonra, bu id ler ile book service gidip, id ilişkli kitapların detaylarını çekiyor.
+
+2-  Kullanıcı isbndeki kitabı library e ekle. Bu istek LibraryApı aracığıla serivce katmamına atıoyr. Serivce layerda bir feign client inject ettimç
+    Feign vclient book servicein eurak service register edişeln ismini bilir. Feign client bunu çözümleyip Eurakaya gider ilgili bilgiyi alır. Ip ve protu çözüp servisin bookApi'na istekte bulunr
+    Book servicede isbn sorgus yapıyor DB de.(DBler arasında sadece Idlerin referansı paylaşılıyor)
+3-  Isn varsa, Book Db den aldığım book entiitisini, bookdto convert edip Feign üzerinden library service iletilir. Eğer yoksa?
+4-  BookNotFoundExecption gediğide; İki durum var bunalrdan birisi tercih ediiecek.
+    a-  Stop ProcessI nform User: Feign client tan aldığımız hatayı uygun bir json vey respone entitye çevirip kullanıcıyı bilgilendir.Exception Handling kuallncıyı bilgilendir
+        Bu ksımda thread ölür. Proces sonlanır.
+    b-  1-  Create Default value: default vaule ile db kayıt
+        2-  change th request path: bende bu bilgi yok başka yereye sorayım
+        Buarada yeni bir porcess oluşutur. Yani processi devam ettirmeye çaışıyor.
+
+
+
+
+NOTS:
+1-  Eureka server: Clientlerin birbiryle iletşim kurmasını sağlıyor.
+    MS bulutunda servicelerin biribirinde haberleri yok bambaşka yerlerde çalışyorlar.Birbierinden,varlığından haberdar olöasını sağlayan sistem.
+2- Bütün servicelerin Eureka server regsiter etmek zorunda değilim. Hangi Ms serviceler arqasında iletişime dahil olacaksa, veriyi expose edecekse o zaman server register etmeliyim.
+    Buarada book service-> library serivce istek atma iytiyacı yok.Yani library servisin Euroke service registir etmeme gerek yok.
+3-  Hanig servivsi Eurake servera register edeceksen oraya Euraka Cleint dependecy iel  main classına anatosyan yazıyorum. Book service ayağa kalkaerken Euraka servera Http istekte bulunur.
+    İsimim budur protum budur diye register siteğii atar.Beni çağıran olursa bu bilgileri gönder.
+4-  Library service ise nasıl erişiyor. Eurake servere istekte bulunur. Sende bir service varmış book service miş onun bilgilerine bana ver.
+5-  Böylelikle li,brary service ne zaman book service ihtiyaç duysa, Eurk ya gidib bana bilgi ver denilen MS iletişimi kurulmuş olur.
+6-  MicrServicelerin birbiryler ieltşimi nasıl:
+         Ms ler birbirleriyle hangi protokolleri kullanıyorsan, hangi protokollerle dışatıya veri aktarıyorsan onunla ieltişim kurulur.
+         Burada book service rest api açmış, http üzerinde rest calllar la iletişime  geçiyor. Rest için 2 opsinyon
+            1- Rest Template ile request hazırlanır ve aldğımız response json object mapper objectlere çevrilip ile map edilip isteinlen yerde kullnılır.
+            2- Feign client. Spring clound Ms bir çok auto configurasyonu var:
+                a- jsonı objeye fegin otoamtik çeviriyor
+                b- hata ayıklama işlemlerne büyük kolaylık sağlar
+                c- fallback senaryoları büyük kolaylık sağlar
+            Feign client bunların Spring dünyasında toplandığ bir çatı. Kullanması çok kolay Sadece bir interface yazıp isteiğin metodu koyup çalıştırabiliz
+
+7-  MSlerimiz hatalra dayanıklı Resilliance olması gerekir.Yani hata aldığımızda MS durmamması gerekeir
+8-  Fault Tolarance. ALına hataya istinaen farklı bir durum, farklı bir process, farklı bir davranış işlemine denir. Spirnge öcen Hystrix iken güncel hali Resiiliance dönüştü.
